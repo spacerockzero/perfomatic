@@ -30,7 +30,7 @@ Add a perfomatic config to your package.json
 Run the testfile via npm scripts
 ```
 "scripts": {
-  "perf": "perfomatic" // mocha test file
+  "perf": "perfomatic"
 }
 ```
 
