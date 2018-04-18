@@ -2,6 +2,8 @@
 
 Run Lighthouse performance tests easily from your app
 
+![screenshot](./screenshot.png)
+
 # Install
 
 From your app's root:
