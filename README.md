@@ -3,38 +3,37 @@
 Run Lighthouse performance tests easily from your app
 
 # Install
+
 From your app's root:
+
 ```
 npm install perfomatic --save-dev
 ```
 
-Add a perfomatic config to your package.json
-```
+Add a simple perfomatic config to your package.json
+
+```JSON
 "perfomatic": {
   "urls": [
-    "http://localhost:5000",
-    "http://localhost:5000/sample"
+    "http://localhost:5000"
   ],
+  "overall": 95,
   "budget": {
-    "overall": 90,
-    "score": {
-      "speed-index-metric": 90
-    },
-    "boolean": {
-      "time-to-first-byte": true
-    }
+    "speed-index-metric": 90,
+    "time-to-first-byte": true
   }
 }
 ```
 
-Run the testfile via npm scripts
-```
+Make an npm script for it
+
+```JSON
 "scripts": {
   "perf": "perfomatic"
 }
 ```
 
-Start up your server at the urls you want to test against, then run perfomatic:
+*START UP YOUR SERVER* at the urls you want to test against, then run perfomatic:
 
 ```
 npm run perf
@@ -43,7 +42,8 @@ npm run perf
 OR
 
 # Sample vscode debugger setup (put this in your app to run with F5 debugger)
-```
+
+```JSON
 {
   // Use IntelliSense to learn about possible attributes.
   // Hover to view descriptions of existing attributes.
@@ -60,5 +60,24 @@ OR
       "internalConsoleOptions": "openOnSessionStart"
     }
   ]
+}
+```
+
+# All available package.json config options
+
+```JSON
+"perfomatic": {
+  "urls": [
+    "http://localhost:5000"
+  ],
+  "verbose": true, // show metric output, and HELP feedback about failed metrics
+  "showAvailableMetrics": true, // print current available metrics and scoring types, binary or numeric
+  "overall": 90,
+  "budget": {
+    "speed-index-metric": 90, // numeric (0-100, higher is better)
+    "time-to-first-byte": true, // binary (false)
+    ... // all the other metrics
+    }
+  }
 }
 ```
