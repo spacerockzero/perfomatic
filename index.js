@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const Mocha = require('mocha');
 const path = require('path');
 

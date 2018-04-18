@@ -13,7 +13,7 @@ Add a perfomatic config to your package.json
 "perfomatic": {
   "urls": [
     "http://localhost:5000",
-    "http://localhost:5000/sample",
+    "http://localhost:5000/sample"
   ],
   "budget": {
     "overall": 90,
@@ -34,8 +34,15 @@ Run the testfile via npm scripts
 }
 ```
 
+Start up your server at the urls you want to test against, then run perfomatic:
 
-# Sample vscode debugger setup (put this in your app)
+```
+npm run perf
+```
+
+OR
+
+# Sample vscode debugger setup (put this in your app to run with F5 debugger)
 ```
 {
   // Use IntelliSense to learn about possible attributes.
