@@ -97,7 +97,6 @@ describe('Running...', function() {
     });
   });
   after(function(done) {
-    debugger;
     printFeedback(helpData);
     done();
   });
@@ -115,7 +114,6 @@ describe('Running...', function() {
               console.log(`   ${key} time: ${pageData.audits[key].displayValue}`);
               const feedback = expect(pageData.audits[key].score).to.be.at.least(config.budget.score[key]);
             } catch (err) {
-              debugger;
 
               // save helpful msgs until after the tests
               helpData.push({key: key, msg: pageData.audits[key].helpText});
@@ -131,7 +129,6 @@ describe('Running...', function() {
               console.log(`   ${key} time: ${pageData.audits[key].displayValue}`);
               const feedback = expect(pageData.audits[key].score).to.be.equal(config.budget.boolean[key]);
             } catch (err) {
-              debugger;
 
               // save helpful msgs until after the tests
               helpData.push({key: key, msg: pageData.audits[key].helpText});
