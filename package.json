@@ -1,6 +1,6 @@
 {
   "name": "perfomatic",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Run Lighthouse performance tests easily from your app",
   "main": "index.js",
   "scripts": {
