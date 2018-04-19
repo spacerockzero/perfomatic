@@ -1,11 +1,15 @@
 {
   "name": "perfomatic",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Run Lighthouse performance tests easily from your app",
   "homepage": "https://github.com/spacerockzero/perfomatic",
   "repository": "github:spacerockzero/perfomatic",
-  "keywords":[
-    "performance","lighthouse","synthetic","PWA","Progressive Web App"
+  "keywords": [
+    "performance",
+    "lighthouse",
+    "synthetic",
+    "PWA",
+    "Progressive Web App"
   ],
   "main": "index.js",
   "scripts": {
