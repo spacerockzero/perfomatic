@@ -2,6 +2,11 @@
   "name": "perfomatic",
   "version": "0.1.5",
   "description": "Run Lighthouse performance tests easily from your app",
+  "homepage": "https://github.com/spacerockzero/perfomatic",
+  "repository": "github:spacerockzero/perfomatic",
+  "keywords":[
+    "performance","lighthouse","synthetic","PWA","Progressive Web App"
+  ],
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
