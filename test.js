@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 const path = require('path');
-const {
-  expect
-} = require('chai');
+const { expect } = require('chai');
 const lighthouse = require('lighthouse');
 const chromeLauncher = require('chrome-launcher');
-// const perfConfig = require('lighthouse/lighthouse-core/config/perf-config');
+
+
+// CONFIGS
+// performance config default from lighthouse library
 const perfConfig = {
   extends: 'lighthouse:default',
   settings: {
@@ -14,32 +15,59 @@ const perfConfig = {
     onlyCategories: ['performance'],
   },
 };
+
 const package = require(path.join(process.cwd(), 'package.json'));
 
 if (!package.perfomatic || !package.perfomatic.urls) {
   throw new Error('No perfomatic config with urls in package.json found. Please add one to continue.');
 }
 
-const chromeLauncherOpts = {
-  chromeFlags: ['--headless'],
-  // logLevel: 'info'
-}
-const lighthouseOpts = {
-  onlyCategories: ['performance']
-};
-
 // default config
-let config = Object.assign({
+let config = {
   verbose: false,
   showAvailableMetrics: false,
   overall: 90,
-}, package.perfomatic);
+  timeoutOverall: 1000 * 60 * 5, // 5 minutes, in milliseconds,
+  timeoutPerSite: 1000 * 60,     // 1 minuite, in milliseconds
+  ...package.perfomatic,         // User config overrides defaults
+};
 
-console.log('config', config)
+const chromeLauncherOpts = {
+  chromeFlags: ['--headless'],
+  logLevel: config.verbose ? 'info' : '',   // info about chrome-launcher status
+  ...package.perfomatic.chromeLauncherOpts  // user can override chrome-launcher opts
+}
 
-// run in localhost or travis only
+const lighthouseOpts = {
+  ...perfConfig.settings,
+  onlyCategories: ['performance'],
+  ...package.perfomatic.lighthouseOpts  // user can ovverride lighthouse opts
+};
+
+// show available metrics, if asked
+if (config.showAvailableMetrics) {
+  try {
+    const availMetricsList = lighthouse.generateConfig()
+      .categories.performance.auditRefs
+      .map(item => item.id)
+    console.log('* Available budget metrics list:', availMetricsList)
+  } catch (error) {
+    console.error('Couldn\'t get list of available metrics, because:', error)
+  }
+}
+
+/** show configs for verbose users */
+if (config.verbose) {
+  console.log('* User config, after merge with defaults', config)
+  console.log('* Chrome launcher opts:', chromeLauncherOpts)
+  console.log('* Lighthouse opts:', lighthouseOpts)
+}
+
 console.log('\nPreparing Perfomatic tests for Lighthouse...');
 
+
+// RUNNING GUTS
+/** Launch chrome headless and run lighthouse, obvs */
 function launchChromeAndRunLighthouse(url) {
   return chromeLauncher
     .launch(chromeLauncherOpts)
@@ -54,6 +82,7 @@ function launchChromeAndRunLighthouse(url) {
     });
 }
 
+/** Test one site */
 function testUrl(url) {
   return launchChromeAndRunLighthouse(url)
     .then(results => {
@@ -67,13 +96,6 @@ function testUrl(url) {
     });
 }
 
-function printFeedback(helpData) {
-  if (helpData.length > 0) {
-    console.log('\n');
-    helpData.forEach(help => console.log(`HELP (${help.key}): ${help.msg} \n`));
-  }
-}
-
 async function runEverything(config) {
   const res = []
   for (let site of config.urls) {
@@ -85,10 +107,12 @@ async function runEverything(config) {
   return res
 }
 
+
+// TESTING GUTS
+/** Run Audits in test framework */
 describe('Running Lighthouse audits...\n', function () {
-  this.timeout(30000);
+  this.timeout(config.timeoutOverall); // 5 minutes, in milliseconds
   let testData = [];
-  var helpData = [];
 
   before(function (done) {
     runEverything(config).then(data => {
@@ -100,9 +124,8 @@ describe('Running Lighthouse audits...\n', function () {
   });
 
   after(function (done) {
-    printFeedback(helpData);
     console.log('     done.')
-    console.log('\n==========RESULTS==========\n')
+    console.log('\n====================RESULTS====================\n')
     done();
   });
 
@@ -110,9 +133,8 @@ describe('Running Lighthouse audits...\n', function () {
     testData.forEach(site => {
 
       // Test this sites' overall score against config overall budget
-      describe(`${site.requestedUrl}`, () => {
-        after(() => {
-        })
+      describe(`* ${site.requestedUrl}`, () => {
+        this.timeout(config.timeoutPerSite)
         const overallScore = site.categories.performance.score * 100
         if (config.overall) {
           it('should pass overall score', () => {
@@ -126,64 +148,25 @@ describe('Running Lighthouse audits...\n', function () {
         // test this site against requested metric budgets
         Object.entries(config.budget).forEach(([budgetKey, budgetScore]) => {
           const audit = site.audits[budgetKey]
+          const score = audit.score * 100
           // test against budget
           it(`should pass ${budgetKey} score`, () => {
             if (config.verbose) {
-              console.log(`\n   ${budgetKey} score: ${overallScore}\n`);
+              console.log(`\n   ${budgetKey} score: ${score}\n`);
             }
-            expect(audit.score * 100).to.be.at.least(budgetScore)
+            try {
+              const result = expect(score).to.be.at.least(budgetScore)
+              if (!result) {
+              }
+            } catch (error) {
+              error.message += `\n      -- ${audit.description}`
+              throw error
+            }
           })
         })
 
       })
 
     })
-    // Object.entries(testData.audits).forEach(([key, value]) => {
-    //   // console.log('key,value', key, value)
-    //   describe(`${testData.requestedUrl}`, () => {
-    //     if (config.overall) {
-    //       it('should pass overall score', () => {
-    //         if (config.verbose) {
-    //           console.log(`   Overall score: ${value.score}\n`);
-    //         }
-    //         expect(value.score).to.be.at.least(config.overall);
-    //       })
-    //     }
-    // run tests against all budget metrics
-    // Object.keys(config.budget).forEach(key => {
-    //   if (config.showAvailableMetrics) {
-    //     console.log('pageData.audits[key]', pageData.audits[key]);
-    //     const metrics = Object.keys(pageData.audits).map(key => {
-    //       console.log(`${key}: ${pageData.audits[key].scoringMode}`);
-    //     });
-    //   }
-    //   it(`should pass ${key} score`, () => {
-    //     try {
-    //       if (config.verbose) {
-    //         console.log(`   ${key} score: ${pageData.audits[key].score}`);
-    //         console.log(`   ${key} time: ${pageData.audits[key].displayValue}\n`);
-    //       }
-    //       if (pageData.audits[key].scoringMode === 'numeric') {
-    //         // numeric scoring mode
-    //         const feedback = expect(pageData.audits[key].score).to.be.at.least(config.budget[key]);
-    //       } else {
-    //         // binary scoring mode
-    //         const feedback = expect(pageData.audits[key].score).to.be.equal(config.budget[key]);
-    //       }
-    //     } catch (err) {
-    //       // save helpful msgs until after the tests
-    //       const help = {
-    //         key: key,
-    //         msg: pageData.audits[key].helpText
-    //       }
-    //       if (config.verbose) {
-    //         console.log(`   HELP (${help.key}): ${help.msg} \n`);
-    //       }
-    //       throw err;
-    //     }
-    //   });
-    // });
-    // });
-    // })
   });
 });

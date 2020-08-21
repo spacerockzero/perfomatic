@@ -35,7 +35,7 @@ Make an npm script for it
 }
 ```
 
-*START UP YOUR SERVER* at the urls you want to test against, then run perfomatic:
+_START UP YOUR SERVER_ at the urls you want to test against, then run perfomatic:
 
 ```
 npm run perf
@@ -76,7 +76,7 @@ OR
   "showAvailableMetrics": true, // print current available metrics and scoring types, binary or numeric
   "overall": 90,
   "budget": {
-    "speed-index-metric": 90, // numeric (0-100, higher is better)
+    "speed-index": 90, // numeric (0-100, higher is better)
     "time-to-first-byte": true, // binary (false)
     ... // all the other metrics
     }
